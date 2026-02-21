@@ -1,4 +1,4 @@
-# ExpenseNest - Personal Finance Management Application
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               # ExpenseNest - Personal Finance Management Application
 
 ExpenseNest is a modern, user-friendly expense tracking application built with React, TypeScript, and Node.js. It helps users manage their personal finances with an intuitive interface and powerful features.
 

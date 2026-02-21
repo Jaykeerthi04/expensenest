@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 import Card, { CardTitle, CardContent } from '../components/ui/Card';
-import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { useExpenses } from '../context/ExpenseContext';
 import { Budget, Category } from '../types';
-import { CATEGORY_COLORS } from '../constants';
+import { CATEGORY_COLORS, DEFAULT_BUDGETS } from '../constants';
+import { useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {
-  const { budgets: contextBudgets, expenses } = useExpenses();
+  const { budgets: contextBudgets, expenses, setBudgets: setContextBudgets, clearExpenses } = useExpenses();
   const [budgets, setBudgets] = useState<Budget[]>(contextBudgets);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const navigate = useNavigate();
 
   const handleBudgetChange = (category: Category, limit: number) => {
     setBudgets(
@@ -20,9 +24,31 @@ const Settings: React.FC = () => {
   };
 
   const handleSaveBudgets = () => {
-    // In a real app, this would save to the context and backend
+    setContextBudgets(budgets);
     setSuccessMessage('Budget settings saved successfully!');
     setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handleClearAllData = () => {
+    if (!showConfirmation) {
+      setShowConfirmation(true);
+      return;
+    }
+
+    try {
+      clearExpenses();
+      setSuccessMessage('All data cleared successfully!');
+      setShowConfirmation(false);
+      setTimeout(() => {
+        setSuccessMessage('');
+        // Redirect to dashboard after clearing data
+        navigate('/dashboard');
+      }, 2000);
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      setSuccessMessage('Failed to clear data. Please try again.');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    }
   };
 
   const handleExportData = () => {
@@ -38,9 +64,9 @@ const Settings: React.FC = () => {
 
       // Format currency
       const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('en-IN', {
           style: 'currency',
-          currency: 'USD'
+          currency: 'INR'
         }).format(amount);
       };
 
@@ -74,7 +100,7 @@ const Settings: React.FC = () => {
         const date = formatDate(expense.date);
         const amount = formatAmount(expense.amount);
         const percentage = formatPercentage(expense.amount / totalExpenses);
-        textContent += `${date.padEnd(15)}${expense.category.padEnd(14)}${amount.padEnd(13)}${percentage.padEnd(12)}${expense.description}\n`;
+        textContent += `${date.padEnd(15)}${expense.category.padEnd(14)}${amount.padEnd(13)}${percentage.padEnd(12)}${expense.notes}\n`;
       });
 
       // Add category breakdown section
@@ -158,133 +184,192 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
-      
-      {/* Budget Settings */}
-      <Card className="mb-6">
-        <CardTitle>Budget Settings</CardTitle>
-        <CardContent>
-          {successMessage && (
-            <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
-              {successMessage}
-            </div>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Settings</h1>
+          <p className="text-gray-600 mb-8">Manage your budgets, data, and account preferences</p>
           
-          <div className="space-y-4">
-            {budgets.map((budget) => (
-              <div key={budget.category} className="flex items-center">
-                <div 
-                  className="w-4 h-4 mr-2 rounded-sm"
-                  style={{ backgroundColor: CATEGORY_COLORS[budget.category] }}
-                />
-                <span className="w-24 text-gray-700">{budget.category}</span>
-                <div className="ml-4 flex-1">
-                  <Input
-                    type="number"
-                    min="0"
-                    step="10"
-                    value={budget.limit}
-                    onChange={(e) => handleBudgetChange(
-                      budget.category,
-                      parseFloat(e.target.value) || 0
-                    )}
-                    fullWidth
-                  />
+          {successMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-green-50 border-2 border-green-200 text-green-800 rounded-lg flex items-center space-x-2"
+            >
+              <CheckCircle size={20} />
+              <span className="font-medium">{successMessage}</span>
+            </motion.div>
+          )}
+
+          {/* Budget Settings */}
+          <Card className="rounded-2xl shadow-lg p-6 bg-white mb-6 hover:shadow-xl transition-all duration-200">
+            <CardTitle className="font-bold text-lg mb-4">Budget Settings</CardTitle>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                {budgets.map((budget) => (
+                  <div key={budget.category} className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-sm shadow-sm"
+                        style={{ backgroundColor: CATEGORY_COLORS[budget.category] }}
+                      />
+                      <span className="font-medium text-gray-700 min-w-32">{budget.category}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 w-40">
+                      <span className="text-sm text-gray-500">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="10"
+                        value={budget.limit}
+                        onChange={(e) => handleBudgetChange(
+                          budget.category,
+                          parseFloat(e.target.value) || 0
+                        )}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="mt-6"
+              >
+                <Button
+                  onClick={handleSaveBudgets}
+                  variant="primary"
+                  className="shadow-lg hover:scale-105 transition-all duration-200"
+                >
+                  Save Budget Settings
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
+          
+          {/* Data Management */}
+          <Card className="rounded-2xl shadow-lg p-6 bg-white mb-6 hover:shadow-xl transition-all duration-200">
+            <CardTitle className="font-bold text-lg mb-4">Data Management</CardTitle>
+            <CardContent className="p-0">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Export Data</h3>
+                  <p className="text-sm text-gray-600 mb-4">Download your expense data and budget settings as a report.</p>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      onClick={handleExportData}
+                      variant="secondary"
+                      className="transition-all duration-200"
+                    >
+                      Export to File
+                    </Button>
+                  </motion.div>
+                </div>
+                
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Import Data</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Import previously exported expense data.
+                  </p>
+                  <label className="inline-block">
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleImportData}
+                      className="hidden"
+                    />
+                    <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium cursor-pointer hover:bg-blue-100 transition-colors duration-200">
+                      Choose File
+                    </div>
+                  </label>
                 </div>
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
           
-          <Button
-            onClick={handleSaveBudgets}
-            className="mt-4"
-          >
-            Save Budget Settings
-          </Button>
-        </CardContent>
-      </Card>
-      
-      {/* Data Management */}
-      <Card className="mb-6">
-        <CardTitle>Data Management</CardTitle>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Export Data</h3>
-              <p className="text-gray-600 mb-3">
-                Download your expense data as a JSON file for backup or transfer.
-              </p>
-              <Button
-                onClick={handleExportData}
-                variant="outline"
-              >
-                Export Data
-              </Button>
+          {/* Danger Zone */}
+          <Card className="rounded-2xl shadow-lg p-6 bg-red-50 border-2 border-red-200 mb-6 hover:shadow-xl transition-all duration-200">
+            <div className="flex items-center space-x-3 mb-4">
+              <AlertTriangle className="text-red-600" size={24} />
+              <CardTitle className="font-bold text-lg text-red-600">Danger Zone</CardTitle>
             </div>
-            
-            <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Import Data</h3>
-              <p className="text-gray-600 mb-3">
-                Import previously exported expense data.
-              </p>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImportData}
-                className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-medium
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
-              />
-            </div>
-            
-            <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-lg font-medium text-text-red-600 mb-2">Danger Zone</h3>
-              <p className="text-gray-600 mb-3">
-                Clear all your expense data. This action cannot be undone.
-              </p>
-              <Button
-                variant="outline"
-                className="text-red-600 border-red-600 hover:bg-red-50"
-              >
-                Clear All Data
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Account Settings */}
-      <Card>
-        <CardTitle>Account Settings</CardTitle>
-        <CardContent>
-          <div className="space-y-4">
-            <Input
-              label="Display Name"
-              placeholder="Your Name"
-              defaultValue="User"
-              fullWidth
-            />
-            
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="your.email@example.com"
-              defaultValue="user@example.com"
-              fullWidth
-            />
-            
-            <div className="pt-4">
-              <Button>
-                Save Account Settings
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">Clear All Data</h3>
+                  <p className="text-sm text-gray-700 mb-4">
+                    <span className="font-semibold text-red-600">Warning:</span> This action cannot be undone. All your expenses and budget settings will be permanently deleted.
+                  </p>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      onClick={handleClearAllData}
+                      className={`transition-all duration-200 ${
+                        showConfirmation
+                          ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg'
+                          : 'border-2 border-red-500 text-red-600 hover:bg-red-100'
+                      }`}
+                    >
+                      {showConfirmation ? '⚠️ Click again to confirm' : 'Clear All Data'}
+                    </Button>
+                  </motion.div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Account Settings */}
+          <Card className="rounded-2xl shadow-lg p-6 bg-white hover:shadow-xl transition-all duration-200">
+            <CardTitle className="font-bold text-lg mb-4">Account Settings</CardTitle>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                  <input
+                    type="text"
+                    placeholder="Your Name"
+                    defaultValue="User"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="your.email@example.com"
+                    defaultValue="user@example.com"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="pt-4"
+                >
+                  <Button
+                    className="shadow-lg hover:scale-105 transition-all duration-200"
+                  >
+                    Save Account Settings
+                  </Button>
+                </motion.div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 };

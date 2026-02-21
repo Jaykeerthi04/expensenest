@@ -1,8 +1,10 @@
-export type Category = 'Food' | 'Transportation' | 'Entertainment' | 'Shopping' | 'Bills' | 'Other';
+export type Category = 'Housing' | 'Food' | 'Travel' | 'Utilities' | 'Shopping' | 'Other';
+export type Period = 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
 
 export interface Budget {
   category: Category;
   limit: number;
+  spent: number;
 }
 
 export interface Expense {
@@ -10,7 +12,7 @@ export interface Expense {
   amount: number;
   category: Category;
   date: string;
-  description: string;
+  notes: string;
 }
 
 export interface CategoryTotal {

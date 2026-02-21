@@ -5,25 +5,25 @@ import Button from '../components/ui/Button';
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
-      <div className="container mx-auto px-4 pt-16 pb-20">
+      <div className="max-w-7xl mx-auto px-6 pt-20 pb-24">
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight tracking-tight">
               Track your spending with ease
             </h1>
             <p className="mt-4 text-xl text-gray-600 max-w-md">
               Take control of your finances by using our simple expense calculator.
             </p>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Link to="/dashboard">
-                <Button size="lg" className="mr-4">
+                <Button size="lg" className="mr-0 shadow-lg hover:scale-105 transition-all duration-200">
                   Get Started
                 </Button>
               </Link>
               <a href="#features">
-                <Button variant="outline" size="lg">
+                <Button variant="outline" size="lg" className="hover:scale-105 transition-all duration-200">
                   Learn More
                 </Button>
               </a>
@@ -32,8 +32,11 @@ const LandingPage: React.FC = () => {
           
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-64 md:w-80 h-auto">
-              {/* Phone frame with app screenshot */}
-              <div className="rounded-[3rem] overflow-hidden border-8 border-gray-900 shadow-xl">
+              {/* Glowing radial gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-[3rem] blur-3xl opacity-30 -z-10"></div>
+              
+              {/* Phone frame with app screenshot - subtle floating animation */}
+              <div className="rounded-[3rem] overflow-hidden border-8 border-gray-900 shadow-xl animate-float">
                 <div className="aspect-[9/16] bg-white p-4">
                   <div className="mb-4 text-center">
                     <h2 className="text-lg font-bold">Expenses</h2>
@@ -70,8 +73,8 @@ const LandingPage: React.FC = () => {
       </div>
       
       {/* Features Section */}
-      <div id="features" className="bg-white py-16">
-        <div className="container mx-auto px-4">
+      <div id="features" className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
             Everything you need to manage expenses
           </h2>
@@ -125,8 +128,8 @@ const LandingPage: React.FC = () => {
       </div>
       
       {/* CTA Section */}
-      <div className="bg-blue-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-20">
+        <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Ready to take control of your finances?
           </h2>
@@ -134,7 +137,7 @@ const LandingPage: React.FC = () => {
             Join thousands of users who have improved their financial health with ExpenseNest.
           </p>
           <Link to="/dashboard">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 shadow-lg hover:scale-105 transition-all duration-200">
               Start Now — It's Free!
             </Button>
           </Link>
@@ -143,7 +146,7 @@ const LandingPage: React.FC = () => {
       
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-8 md:mb-0">
               <div className="flex items-center">
