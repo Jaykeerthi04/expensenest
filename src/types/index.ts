@@ -3,11 +3,13 @@
 export type Category = 'Housing' | 'Food' | 'Travel' | 'Utilities' | 'Shopping' | 'Other';
 
 export interface Expense {
-  id: string;
+  _id: string;
   amount: number;
   category: Category;
   date: string;
   notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CategoryTotal {

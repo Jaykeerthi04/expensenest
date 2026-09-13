@@ -48,7 +48,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
         <tbody>
           {sortedExpenses.map((expense) => (
             <tr 
-              key={expense.id} 
+              key={expense._id} 
               className="border-b border-gray-100 hover:bg-gray-50 transition-all duration-200"
             >
               <td className="px-6 py-4 text-sm text-gray-700 font-medium">{formatDate(expense.date)}</td>
@@ -81,7 +81,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
                     </button>
                   )}
                   <button
-                    onClick={() => deleteExpense(expense.id)}
+                    onClick={() => deleteExpense(expense._id)}
                     className="inline-flex items-center justify-center w-8 h-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                     aria-label="Delete expense"
                   >

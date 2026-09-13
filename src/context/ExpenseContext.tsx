@@ -1,19 +1,21 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Expense, Category, Budget, Period } from '../types';
-import { DEFAULT_EXPENSES, DEFAULT_BUDGETS } from '../constants';
+import { DEFAULT_BUDGETS } from '../constants';
 import Toast from '../components/ui/Toast';
+import config from '../config';
 
 interface ExpenseContextType {
   expenses: Expense[];
-  addExpense: (expense: Omit<Expense, 'id'>) => void;
+  addExpense: (expense: Omit<Expense, '_id' | 'createdAt' | 'updatedAt'>) => void;
   deleteExpense: (id: string) => void;
-  updateExpense: (expense: Expense) => void;
+  updateExpense: (expense: Omit<Expense, 'createdAt' | 'updatedAt'>) => void;
   clearExpenses: () => void;
   totalExpenses: number;
   selectedPeriod: Period;
   setSelectedPeriod: (period: Period) => void;
   budgets: Budget[];
   setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
+  isLoading: boolean;
 }
 
 interface ToastMessage {
@@ -36,20 +38,11 @@ interface ExpenseProviderProps {
 }
 
 export const ExpenseProvider = ({ children }: ExpenseProviderProps) => {
-  // Load expenses from localStorage or use defaults
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    try {
-      const savedExpenses = localStorage.getItem('expenses');
-      return savedExpenses ? JSON.parse(savedExpenses) : DEFAULT_EXPENSES;
-    } catch (error) {
-      console.error('Error loading expenses:', error);
-      return DEFAULT_EXPENSES;
-    }
-  });
-  
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('Monthly');
   const [toast, setToast] = useState<ToastMessage | null>(null);
-
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Calculate spent amounts for each category based on current expenses
   const calculateSpentAmounts = (currentExpenses: Expense[], budgetLimits: Budget[]) => {
     const spentByCategory = {} as Record<Category, number>;
@@ -84,16 +77,58 @@ export const ExpenseProvider = ({ children }: ExpenseProviderProps) => {
     }
   });
 
-  // Save expenses to localStorage whenever they change
+  // Fetch expenses from backend on mount
   useEffect(() => {
-    try {
-      localStorage.setItem('expenses', JSON.stringify(expenses));
-      // Recalculate budget spent amounts when expenses change
-      setBudgets(currentBudgets => calculateSpentAmounts(expenses, currentBudgets));
-    } catch (error) {
-      console.error('Error saving expenses:', error);
-    }
-  }, [expenses]);
+    const fetchExpenses = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          // User not logged in, start with empty expenses
+          setExpenses([]);
+          return;
+        }
+
+        const response = await fetch(`${config.API_URL}/api/expenses`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Token expired or invalid
+            localStorage.removeItem('token');
+            setExpenses([]);
+            return;
+          }
+          throw new Error('Failed to fetch expenses');
+        }
+
+        const data = await response.json();
+        // Convert date strings to ensure they're in the right format
+        const formattedExpenses = data.map((exp: Expense) => ({
+          ...exp,
+          date: exp.date ? new Date(exp.date).toISOString().split('T')[0] : ''
+        }));
+        setExpenses(formattedExpenses);
+      } catch (error) {
+        console.error('Error fetching expenses:', error);
+        setToast({
+          message: 'Failed to load expenses',
+          type: 'error'
+        });
+        setExpenses([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExpenses();
+  }, []);
 
   // Save budgets to localStorage whenever they change
   useEffect(() => {
@@ -103,6 +138,11 @@ export const ExpenseProvider = ({ children }: ExpenseProviderProps) => {
       console.error('Error saving budgets:', error);
     }
   }, [budgets]);
+
+  // Recalculate budget spent amounts when expenses change
+  useEffect(() => {
+    setBudgets(currentBudgets => calculateSpentAmounts(expenses, currentBudgets));
+  }, [expenses]);
 
   const checkBudgetExceeded = (newExpense: Expense) => {
     const budget = budgets.find(b => b.category === newExpense.category);
@@ -122,37 +162,164 @@ export const ExpenseProvider = ({ children }: ExpenseProviderProps) => {
     }
   };
 
-  const addExpense = (expenseData: Omit<Expense, 'id'>) => {
-    const newExpense: Expense = {
-      ...expenseData,
-      id: Date.now().toString(),
-    };
-    
-    setExpenses(prevExpenses => [...prevExpenses, newExpense]);
-    checkBudgetExceeded(newExpense);
-  };
-
-  const deleteExpense = (id: string) => {
+  const addExpense = async (expenseData: Omit<Expense, '_id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      setExpenses(prevExpenses => prevExpenses.filter(expense => expense.id !== id));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setToast({
+          message: 'Please log in to add expenses',
+          type: 'error'
+        });
+        return;
+      }
+
+      const response = await fetch(`${config.API_URL}/api/expenses`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(expenseData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to add expense');
+      }
+
+      const newExpense = await response.json();
+      // Format the date from the server response
+      const formattedExpense = {
+        ...newExpense,
+        date: newExpense.date ? new Date(newExpense.date).toISOString().split('T')[0] : ''
+      };
+      
+      setExpenses(prevExpenses => [...prevExpenses, formattedExpense]);
+      checkBudgetExceeded(formattedExpense);
+      setToast({
+        message: 'Expense added successfully',
+        type: 'success'
+      });
     } catch (error) {
-      console.error('Error deleting expense:', error);
+      console.error('Error adding expense:', error);
+      setToast({
+        message: error instanceof Error ? error.message : 'Failed to add expense',
+        type: 'error'
+      });
     }
   };
 
-  const clearExpenses = () => {
-    setExpenses([]);
-    setBudgets(DEFAULT_BUDGETS.map(budget => ({ ...budget, spent: 0 })));
-    localStorage.removeItem('expenses');
-    localStorage.removeItem('budgets');
+  const deleteExpense = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setToast({
+          message: 'Please log in to delete expenses',
+          type: 'error'
+        });
+        return;
+      }
+
+      const response = await fetch(`${config.API_URL}/api/expenses/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete expense');
+      }
+
+      setExpenses(prevExpenses => prevExpenses.filter(expense => expense._id !== id));
+      setToast({
+        message: 'Expense deleted successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      setToast({
+        message: error instanceof Error ? error.message : 'Failed to delete expense',
+        type: 'error'
+      });
+    }
   };
 
-  const updateExpense = (updatedExpense: Expense) => {
-    setExpenses(currentExpenses => 
-      currentExpenses.map(expense => 
-        expense.id === updatedExpense.id ? updatedExpense : expense
-      )
-    );
+  const clearExpenses = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Delete all user's expenses
+      const expenseIds = expenses.map(exp => exp._id);
+      for (const id of expenseIds) {
+        await fetch(`${config.API_URL}/api/expenses/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      setExpenses([]);
+      setBudgets(DEFAULT_BUDGETS.map(budget => ({ ...budget, spent: 0 })));
+      localStorage.removeItem('budgets');
+    } catch (error) {
+      console.error('Error clearing expenses:', error);
+    }
+  };
+
+  const updateExpense = async (updatedExpense: Omit<Expense, 'createdAt' | 'updatedAt'>) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setToast({
+          message: 'Please log in to update expenses',
+          type: 'error'
+        });
+        return;
+      }
+
+      const response = await fetch(`${config.API_URL}/api/expenses/${updatedExpense._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedExpense)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update expense');
+      }
+
+      const serverExpense = await response.json();
+      // Format the date from the server response
+      const formattedExpense = {
+        ...serverExpense,
+        date: serverExpense.date ? new Date(serverExpense.date).toISOString().split('T')[0] : ''
+      };
+
+      setExpenses(currentExpenses => 
+        currentExpenses.map(expense => 
+          expense._id === formattedExpense._id ? formattedExpense : expense
+        )
+      );
+      setToast({
+        message: 'Expense updated successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      setToast({
+        message: error instanceof Error ? error.message : 'Failed to update expense',
+        type: 'error'
+      });
+    }
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -169,6 +336,7 @@ export const ExpenseProvider = ({ children }: ExpenseProviderProps) => {
       setSelectedPeriod,
       budgets,
       setBudgets,
+      isLoading,
     }}>
       {children}
       {toast && (

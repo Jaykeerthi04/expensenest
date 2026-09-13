@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { config } from 'dotenv';
 import cors from 'cors';
+import { validate } from './validation/middleware.js';
+import { registerSchema, loginSchema, expenseSchema } from './validation/schemas.js';
+import Expense from './models/Expense.js';
 
 // Load environment variables
 config();
@@ -71,7 +74,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Register Route
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', validate(registerSchema), async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -108,7 +111,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Login Route
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -180,6 +183,91 @@ app.put('/api/user/profile', auth, async (req, res) => {
   } catch (error) {
     console.error('Profile update error:', error);
     res.status(500).json({ message: 'Failed to update profile' });
+  }
+});
+
+// Expense Routes (all protected by auth middleware)
+
+// GET /api/expenses - fetch user's expenses
+app.get('/api/expenses', auth, async (req, res) => {
+  try {
+    const expenses = await Expense.find({ user: req.user._id })
+      .sort({ date: -1 });
+    res.json(expenses);
+  } catch (error) {
+    console.error('Error fetching expenses:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/expenses - create an expense
+app.post('/api/expenses', auth, validate(expenseSchema), async (req, res) => {
+  try {
+    const { amount, category, date, notes } = req.body;
+    
+    const expense = new Expense({
+      user: req.user._id,
+      amount,
+      category,
+      date: new Date(date),
+      notes
+    });
+
+    await expense.save();
+    res.status(201).json(expense);
+  } catch (error) {
+    console.error('Error creating expense:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT /api/expenses/:id - update an expense
+app.put('/api/expenses/:id', auth, validate(expenseSchema), async (req, res) => {
+  try {
+    const { amount, category, date, notes } = req.body;
+    
+    // Check ownership
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) {
+      return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    if (expense.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to update this expense' });
+    }
+
+    // Update fields
+    expense.amount = amount;
+    expense.category = category;
+    expense.date = new Date(date);
+    expense.notes = notes;
+
+    await expense.save();
+    res.json(expense);
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// DELETE /api/expenses/:id - delete an expense
+app.delete('/api/expenses/:id', auth, async (req, res) => {
+  try {
+    // Check ownership
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) {
+      return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    if (expense.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this expense' });
+    }
+
+    await Expense.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Expense deleted' });
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
