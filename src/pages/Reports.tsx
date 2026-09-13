@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { PieChart, TrendingDown } from 'lucide-react';
+import { Download, PieChart, TrendingDown } from 'lucide-react';
 import { useExpenses } from '../context/ExpenseContext';
 import { CategoryTotal, Category } from '../types';
 import { CATEGORY_COLORS, MONTHS } from '../constants';
 import Card, { CardTitle, CardContent } from '../components/ui/Card';
+import Button from '../components/ui/Button';
 import ExpenseChart from '../components/ExpenseChart';
 
 const Reports: React.FC = () => {
@@ -46,6 +47,40 @@ const Reports: React.FC = () => {
       return monthMatch && yearMatch && categoryMatch;
     });
   }, [expenses, selectedMonth, selectedYear, selectedCategory]);
+
+  const handleExportCsv = () => {
+    if (filteredExpenses.length === 0) {
+      return;
+    }
+
+    const escapeCsvValue = (value: string | number) => {
+      const stringValue = String(value);
+      return /[",\n]/.test(stringValue)
+        ? `"${stringValue.replace(/"/g, '""')}"`
+        : stringValue;
+    };
+
+    const rows = [
+      ['Date', 'Category', 'Amount', 'Notes'],
+      ...filteredExpenses.map(expense => [
+        expense.date,
+        expense.category,
+        expense.amount,
+        expense.notes ?? ''
+      ])
+    ];
+    const csv = rows.map(row => row.map(escapeCsvValue).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = downloadUrl;
+    link.download = `expenses-${MONTHS[selectedMonth]}-${selectedYear}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadUrl);
+  };
 
   // Calculate total amount for filtered expenses
   const totalAmount = useMemo(() => {
@@ -112,7 +147,20 @@ const Reports: React.FC = () => {
           
           {/* Filters */}
           <Card className="rounded-2xl shadow-lg p-6 bg-white mb-8 hover:shadow-xl transition-all duration-200">
-            <CardTitle className="font-bold text-lg mb-4">Filters</CardTitle>
+            <CardTitle className="font-bold text-lg mb-4 flex items-center justify-between gap-4">
+              <span>Filters</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleExportCsv}
+                disabled={filteredExpenses.length === 0}
+                className="flex items-center gap-2"
+              >
+                <Download size={16} />
+                Export CSV
+              </Button>
+            </CardTitle>
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
