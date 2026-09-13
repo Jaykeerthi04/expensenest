@@ -67,7 +67,7 @@ GitHub Actions automatically runs the build, lint, and test checks on pushes to 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/expensenest.git
+git clone https://github.com/Jaykeerthi04/expensenest.git
 cd expensenest
 ```
 
