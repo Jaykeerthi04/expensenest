@@ -97,7 +97,7 @@ In another terminal (for frontend):
 npm run dev
 ```
 
-5. Open http://localhost:5173 in your browser
+5. Open http://localhost:8080 in your browser
 
 ## Deployment
 
@@ -128,7 +128,7 @@ vercel
    - `MONGODB_URI`: Your MongoDB connection string
    - `JWT_SECRET`: Your JWT secret key
    - `PORT`: 5000
-
+   - `FRONTEND_URL`: Your deployed frontend URL (e.g. your Vercel URL)
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
