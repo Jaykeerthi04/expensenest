@@ -13,10 +13,9 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? true  // Allow all origins in production
-    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:8080'],
+  origin: allowedOrigin,
   credentials: true
 }));
 
@@ -74,7 +73,6 @@ app.get('/api/test', (req, res) => {
 // Register Route
 app.post('/api/auth/register', async (req, res) => {
   try {
-    console.log('Register request received:', req.body);
     const { username, email, password } = req.body;
 
     // Check if user exists
@@ -112,7 +110,6 @@ app.post('/api/auth/register', async (req, res) => {
 // Login Route
 app.post('/api/auth/login', async (req, res) => {
   try {
-    console.log('Login request received:', req.body);
     const { email, password } = req.body;
     
     // Find user
