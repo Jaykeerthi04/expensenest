@@ -57,7 +57,7 @@ npm test -- --run
 GitHub Actions automatically runs the build, lint, and test checks on pushes to `main` and pull requests targeting `main`. The [build passing badge](https://github.com/Jaykeerthi04/expensenest/actions/workflows/ci.yml) at the top of this README links to the workflow status.
 
 ## Getting Started
-  Open http://localhost:8080 in your browser
+
 ### Prerequisites
 - Node.js (v14 or higher)
 - MongoDB Atlas account
@@ -78,7 +78,6 @@ npm install
 
 3. Create a `.env` file in the root directory with the following variables:
 ```env
-NODE_ENV= production
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 PORT=5000
