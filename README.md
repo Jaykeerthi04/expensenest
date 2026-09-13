@@ -81,6 +81,7 @@ npm install
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 PORT=5000
+FRONTEND_URL=http://localhost:8080
 ```
 
 4. Start the development servers:
