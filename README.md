@@ -9,9 +9,21 @@ ExpenseNest is a modern, user-friendly expense tracking application built with R
 - 🔐 Secure user authentication
 - 👤 Customizable user profiles
 - 💰 Expense tracking and management
+- ☁️ Server-side expense persistence in MongoDB, scoped per user
+- ✅ Server-side input validation with Zod on authentication and expense routes
 - 📊 Financial reports and analytics
+- 📄 CSV export of filtered expense reports
 - 🎨 Modern and responsive UI with Tailwind CSS
 - ⚡ Fast and reliable performance with Vite
+
+## Testing
+
+The project uses Vitest and React Testing Library. The test suite contains 14 tests covering the authentication flow, expense CRUD operations, and API and network error handling.
+
+Run the tests with:
+```bash
+npm test -- --run
+```
 
 ## Tech Stack
 
@@ -31,6 +43,18 @@ ExpenseNest is a modern, user-friendly expense tracking application built with R
 - JWT Authentication
 - bcryptjs
 - CORS
+
+## Security
+
+- JWT-based authentication protects user sessions and API requests.
+- Passwords are hashed with bcryptjs before they are stored.
+- Data-level isolation ensures users can only access their own expenses, with ownership checks on update and delete operations.
+- CORS is restricted to the configured frontend origin through `FRONTEND_URL`.
+- Server-side request validation is enforced with Zod on authentication and expense routes.
+
+## CI/CD
+
+GitHub Actions automatically runs the build, lint, and test checks on pushes to `main` and pull requests targeting `main`. The [build passing badge](https://github.com/Jaykeerthi04/expensenest/actions/workflows/ci.yml) at the top of this README links to the workflow status.
 
 ## Getting Started
 
