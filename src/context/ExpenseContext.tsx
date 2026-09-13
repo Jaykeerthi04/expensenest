@@ -164,6 +164,31 @@ export const ExpenseProvider = ({ children }: ExpenseProviderProps) => {
 
   const addExpense = async (expenseData: Omit<Expense, '_id' | 'createdAt' | 'updatedAt'>) => {
     try {
+      // Client-side validation before API call
+      if (!expenseData.amount || expenseData.amount <= 0) {
+        setToast({
+          message: 'Amount must be greater than 0',
+          type: 'error'
+        });
+        return;
+      }
+
+      if (!expenseData.category || expenseData.category.trim() === '') {
+        setToast({
+          message: 'Category is required',
+          type: 'error'
+        });
+        return;
+      }
+
+      if (!expenseData.date || expenseData.date.trim() === '') {
+        setToast({
+          message: 'Date is required',
+          type: 'error'
+        });
+        return;
+      }
+
       const token = localStorage.getItem('token');
       if (!token) {
         setToast({
