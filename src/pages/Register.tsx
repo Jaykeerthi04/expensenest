@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { UserPlus } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import Card, { CardTitle, CardContent } from '../components/ui/Card';
+import Card, { CardContent } from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import config from '../config';
 

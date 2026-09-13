@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import Button from '../components/ui/Button';
-import Card, { CardTitle, CardContent } from '../components/ui/Card';
+import Card, { CardContent } from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import config from '../config';
 

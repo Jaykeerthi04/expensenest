@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAuthenticated(false);
           return false;
         }
-      } catch (error) {
+      } catch {
         // Invalid JSON
         localStorage.removeItem('token');
         localStorage.removeItem('user');

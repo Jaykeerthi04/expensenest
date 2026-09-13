@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { CategoryTotal } from '../types';
-import { CATEGORY_COLORS } from '../constants';
 
 interface ExpenseChartProps {
   data: CategoryTotal[];

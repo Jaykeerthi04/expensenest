@@ -65,7 +65,7 @@ const Reports: React.FC = () => {
     });
     
     const result: CategoryTotal[] = Object.keys(totals).map((category) => ({
-      category: category as any,
+      category: category as Category,
       amount: totals[category],
       color: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS]
     }));
@@ -91,6 +91,14 @@ const Reports: React.FC = () => {
     return days;
   }, [filteredExpenses]);
 
+  const selectArrowStyle = {
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 0.7rem center',
+    backgroundSize: '1.5em 1.5em',
+    paddingRight: '2.5rem'
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -113,13 +121,7 @@ const Reports: React.FC = () => {
                     value={selectedMonth.toString()}
                     onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
-                    style={{
-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\"\3e%3c/polyline\3e%3c/svg%3e")' ,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 0.7rem center',
-                      backgroundSize: '1.5em 1.5em',
-                      paddingRight: '2.5rem'
-                    }}
+                    style={selectArrowStyle}
                   >
                     {monthOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -133,13 +135,7 @@ const Reports: React.FC = () => {
                     value={selectedYear.toString()}
                     onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
-                    style={{
-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\"\3e%3c/polyline\3e%3c/svg%3e")' ,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 0.7rem center',
-                      backgroundSize: '1.5em 1.5em',
-                      paddingRight: '2.5rem'
-                    }}
+                    style={selectArrowStyle}
                   >
                     {yearOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -153,13 +149,7 @@ const Reports: React.FC = () => {
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value as Category | 'All')}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
-                    style={{
-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\"\3e%3c/polyline\3e%3c/svg%3e")' ,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 0.7rem center',
-                      backgroundSize: '1.5em 1.5em',
-                      paddingRight: '2.5rem'
-                    }}
+                    style={selectArrowStyle}
                   >
                     {categoryOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -266,4 +256,7 @@ const Reports: React.FC = () => {
         </motion.div>
       </div>
     </div>
+  );
 };
+
+export default Reports;

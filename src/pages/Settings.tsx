@@ -5,7 +5,7 @@ import Card, { CardTitle, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useExpenses } from '../context/ExpenseContext';
 import { Budget, Category } from '../types';
-import { CATEGORY_COLORS, DEFAULT_BUDGETS } from '../constants';
+import { CATEGORY_COLORS } from '../constants';
 import { useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {

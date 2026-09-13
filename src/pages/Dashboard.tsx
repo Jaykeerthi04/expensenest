@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useExpenses } from '../context/ExpenseContext';
-import { CategoryTotal } from '../types';
+import { CategoryTotal, Category } from '../types';
 import { CATEGORY_COLORS } from '../constants';
 import Card, { CardTitle, CardContent } from '../components/ui/Card';
 import ExpenseChart from '../components/ExpenseChart';
@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
     });
     
     const result: CategoryTotal[] = Object.keys(totals).map((category) => ({
-      category: category as any,
+      category: category as Category,
       amount: totals[category],
       color: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS]
     }));

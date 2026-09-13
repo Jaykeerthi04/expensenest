@@ -1,0 +1,204 @@
+diff --git a/src/components/ExpenseChart.tsx b/src/components/ExpenseChart.tsx
+index ed4b711..3f3ccc3 100644
+--- a/src/components/ExpenseChart.tsx
++++ b/src/components/ExpenseChart.tsx
+@@ -1,6 +1,5 @@
+ import React, { useEffect, useRef, useState, useCallback } from 'react';
+ import { CategoryTotal } from '../types';
+-import { CATEGORY_COLORS } from '../constants';
+ 
+ interface ExpenseChartProps {
+   data: CategoryTotal[];
+diff --git a/src/components/ExpenseForm.tsx b/src/components/ExpenseForm.tsx
+index 37b637e..21b06e9 100644
+--- a/src/components/ExpenseForm.tsx
++++ b/src/components/ExpenseForm.tsx
+@@ -116,7 +116,7 @@ const ExpenseForm: React.FC = () => {
+             required
+             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
+             style={{
+-              backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\22%3e%3c/svg%3e")' ,
++              backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9%22%3e%3c/svg%3e")' ,
+               backgroundRepeat: 'no-repeat',
+               backgroundPosition: 'right 0.7rem center',
+               backgroundSize: '1.5em 1.5em',
+diff --git a/src/config.ts b/src/config.ts
+index 3605cc8..1b67c94 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -1,6 +1,6 @@
+ const config = {
+-  API_URL: process.env.NODE_ENV === 'production'
+-    ? process.env.VITE_API_URL || 'https://your-backend-url.com'
++  API_URL: import.meta.env.PROD
++    ? import.meta.env.VITE_API_URL || 'https://your-backend-url.com'
+     : 'http://localhost:5000',
+ };
+ 
+diff --git a/src/context/AuthContext.tsx b/src/context/AuthContext.tsx
+index 480fc15..e18ec52 100644
+--- a/src/context/AuthContext.tsx
++++ b/src/context/AuthContext.tsx
+@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
+           setIsAuthenticated(false);
+           return false;
+         }
+-      } catch (error) {
++      } catch {
+         // Invalid JSON
+         localStorage.removeItem('token');
+         localStorage.removeItem('user');
+diff --git a/src/pages/Dashboard.tsx b/src/pages/Dashboard.tsx
+index 2039874..2b324b4 100644
+--- a/src/pages/Dashboard.tsx
++++ b/src/pages/Dashboard.tsx
+@@ -1,6 +1,6 @@
+ import React, { useMemo, useState } from 'react';
+ import { useExpenses } from '../context/ExpenseContext';
+-import { CategoryTotal } from '../types';
++import { CategoryTotal, Category } from '../types';
+ import { CATEGORY_COLORS } from '../constants';
+ import Card, { CardTitle, CardContent } from '../components/ui/Card';
+ import ExpenseChart from '../components/ExpenseChart';
+@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
+     });
+     
+     const result: CategoryTotal[] = Object.keys(totals).map((category) => ({
+-      category: category as any,
++      category: category as Category,
+       amount: totals[category],
+       color: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS]
+     }));
+diff --git a/src/pages/Login.tsx b/src/pages/Login.tsx
+index 3a6a7ad..33d0c85 100644
+--- a/src/pages/Login.tsx
++++ b/src/pages/Login.tsx
+@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
+ import { motion } from 'framer-motion';
+ import { LogIn, Eye, EyeOff } from 'lucide-react';
+ import Button from '../components/ui/Button';
+-import Card, { CardTitle, CardContent } from '../components/ui/Card';
++import Card, { CardContent } from '../components/ui/Card';
+ import { useAuth } from '../context/AuthContext';
+ import config from '../config';
+ 
+diff --git a/src/pages/Profile.tsx b/src/pages/Profile.tsx
+index aac5a3e..5f54601 100644
+--- a/src/pages/Profile.tsx
++++ b/src/pages/Profile.tsx
+@@ -1,7 +1,7 @@
+ import React, { useState, useEffect, useRef } from 'react';
+ import { motion, AnimatePresence } from 'framer-motion';
+ import { User, Camera, Edit2, Check, X } from 'lucide-react';
+-import Card, { CardTitle, CardContent } from '../components/ui/Card';
++import Card, { CardContent } from '../components/ui/Card';
+ import Button from '../components/ui/Button';
+ import Input from '../components/ui/Input';
+ import config from '../config';
+@@ -157,29 +157,6 @@ const Profile: React.FC = () => {
+     setEditedUsername(profile?.username || '');
+   };
+ 
+-  const containerVariants = {
+-    hidden: { opacity: 0, y: 20 },
+-    visible: {
+-      opacity: 1,
+-      y: 0,
+-      transition: {
+-        duration: 0.6,
+-        ease: "easeOut",
+-        when: "beforeChildren",
+-        staggerChildren: 0.2
+-      }
+-    }
+-  };
+-
+-  const itemVariants = {
+-    hidden: { opacity: 0, y: 10 },
+-    visible: {
+-      opacity: 1,
+-      y: 0,
+-      transition: { duration: 0.4, ease: "easeOut" }
+-    }
+-  };
+-
+   if (isLoading) {
+     return (
+       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+diff --git a/src/pages/Register.tsx b/src/pages/Register.tsx
+index 65dee0d..2f6fb7a 100644
+--- a/src/pages/Register.tsx
++++ b/src/pages/Register.tsx
+@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
+ import { UserPlus } from 'lucide-react';
+ import Input from '../components/ui/Input';
+ import Button from '../components/ui/Button';
+-import Card, { CardTitle, CardContent } from '../components/ui/Card';
++import Card, { CardContent } from '../components/ui/Card';
+ import { useAuth } from '../context/AuthContext';
+ import config from '../config';
+ 
+diff --git a/src/pages/Reports.tsx b/src/pages/Reports.tsx
+index 787b2b9..93b8b78 100644
+--- a/src/pages/Reports.tsx
++++ b/src/pages/Reports.tsx
+@@ -65,7 +65,7 @@ const Reports: React.FC = () => {
+     });
+     
+     const result: CategoryTotal[] = Object.keys(totals).map((category) => ({
+-      category: category as any,
++      category: category as Category,
+       amount: totals[category],
+       color: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS]
+     }));
+@@ -114,7 +114,7 @@ const Reports: React.FC = () => {
+                     onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
+                     style={{
+-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\"\3e%3c/polyline\3e%3c/svg%3e")' ,
++                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e")' ,
+                       backgroundRepeat: 'no-repeat',
+                       backgroundPosition: 'right 0.7rem center',
+                       backgroundSize: '1.5em 1.5em',
+@@ -134,7 +134,7 @@ const Reports: React.FC = () => {
+                     onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
+                     style={{
+-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\"\3e%3c/polyline\3e%3c/svg%3e")' ,
++                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e")' ,
+                       backgroundRepeat: 'no-repeat',
+                       backgroundPosition: 'right 0.7rem center',
+                       backgroundSize: '1.5em 1.5em',
+@@ -154,7 +154,7 @@ const Reports: React.FC = () => {
+                     onChange={(e) => setSelectedCategory(e.target.value as Category | 'All')}
+                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none bg-white"
+                     style={{
+-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\3e%3cpolyline points=\"6 9 12 15 18 9\"\3e%3c/polyline\3e%3c/svg%3e")' ,
++                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e")' ,
+                       backgroundRepeat: 'no-repeat',
+                       backgroundPosition: 'right 0.7rem center',
+                       backgroundSize: '1.5em 1.5em',
+@@ -266,4 +266,7 @@ const Reports: React.FC = () => {
+         </motion.div>
+       </div>
+     </div>
+-};
+\ No newline at end of file
++  );
++};
++
++export default Reports;
+\ No newline at end of file
+diff --git a/src/pages/Settings.tsx b/src/pages/Settings.tsx
+index c3001d7..2d340b0 100644
+--- a/src/pages/Settings.tsx
++++ b/src/pages/Settings.tsx
+@@ -5,7 +5,7 @@ import Card, { CardTitle, CardContent } from '../components/ui/Card';
+ import Button from '../components/ui/Button';
+ import { useExpenses } from '../context/ExpenseContext';
+ import { Budget, Category } from '../types';
+-import { CATEGORY_COLORS, DEFAULT_BUDGETS } from '../constants';
++import { CATEGORY_COLORS } from '../constants';
+ import { useNavigate } from 'react-router-dom';
+ 
+ const Settings: React.FC = () => {
